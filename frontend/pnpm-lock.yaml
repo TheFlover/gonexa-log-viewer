@@ -13,6 +13,7 @@ specifiers:
   eslint-plugin-vue: ^8.0.3
   primevue: ^4.0.7
   vue: ^3.2.13
+  webpack: ^5.94.0
 
 dependencies:
   '@primevue/themes': 4.0.7
@@ -29,6 +30,7 @@ devDependencies:
   '@vue/cli-service': 5.0.8_vue@3.5.8
   eslint: 7.32.0
   eslint-plugin-vue: 8.7.1_eslint@7.32.0
+  webpack: 5.94.0
 
 packages:
 

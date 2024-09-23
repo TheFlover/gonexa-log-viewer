@@ -24,10 +24,10 @@
 
 <script>
 import { ref, onMounted } from 'vue';
-import axios from 'axios';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import Tag from 'primevue/tag';
+import apiService from '@/services/api';
 
 export default {
 	components: {
@@ -40,7 +40,7 @@ export default {
 
 		const getLogs = async () => {
 			try {
-				const response = await axios.get('http://localhost:5008/api/logs');
+				const response = await apiService.getLogs();
 				logs.value = response.data;
 			} catch (error) {
 				console.error('Error fetching logs:', error);

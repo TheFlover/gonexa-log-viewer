@@ -9,4 +9,7 @@ app.use(PrimeVue, {
         preset: Aura
     }
 });
+
+document.title = process.env.VUE_APP_TITLE
+
 app.mount('#app')
