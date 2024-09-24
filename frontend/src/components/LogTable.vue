@@ -21,9 +21,14 @@
 			<Column header="Download Documents">
 				<template #body="slotProps">
 					<div class="action-buttons">
-						<Button label="Model" icon="pi pi-download" @click="downloadFile(slotProps.data.id, FileType.Model)" class="mr-2"/>
-						<Button label="Generated" icon="pi pi-download" @click="downloadFile(slotProps.data.id, FileType.Generated)" />
+						<Button label="Model" @click="downloadFile(slotProps.data.id, FileType.Model)" class="mr-2"/>
+						<Button label="Generated" @click="downloadFile(slotProps.data.id, FileType.Generated)" />
 					</div>
+				</template>
+			</Column>
+			<Column header="Actions">
+				<template #body="slotProps">
+					<Button v-if="slotProps.data.generationStatus === GenerationStatus.FAILED" label="Retry generation" @click="retryGeneration(slotProps.data.id)" />
 				</template>
 			</Column>
 		</DataTable>
@@ -113,13 +118,35 @@ export default {
 			}
 		};
 
+		// Retry generation for a log
+		const retryGeneration = async (logId) => {
+			try {
+				const response = await apiService.retryGeneration(logId);
+				
+				if (response.status !== 200) {
+					console.error('Error retrying generation:', response.data);
+					return;
+				}
+
+				// Update the generation status of the log
+				const logIndex = logs.value.findIndex(log => log.id === logId);
+				if (logIndex !== -1) {
+					logs.value[logIndex] = response.data;
+				}
+			} catch (error) {
+				console.error('Error retrying generation:', error);
+			}
+		};
+
 		onMounted(getLogs);
 
 		return {
 			logs,
 			getStatusSeverity,
 			downloadFile,
-			FileType
+			FileType,
+			retryGeneration,
+			GenerationStatus  
 		};
 	}
 }
