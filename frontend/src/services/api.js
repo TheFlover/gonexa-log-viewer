@@ -20,5 +20,8 @@ export default {
         return apiClient.get(`/api/logs/${logId}/download/modelfile`, {
             responseType: 'blob'
         })
+    },
+    retryGeneration(logId) {
+        return apiClient.post(`/api/logs/${logId}/retry`)
     }
 }
