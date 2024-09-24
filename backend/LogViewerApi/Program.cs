@@ -15,8 +15,9 @@ builder.Services.AddCors(options =>
     options.AddDefaultPolicy(policy =>
     {
         policy.WithOrigins("http://localhost:8080")
-              .AllowAnyHeader()
-              .AllowAnyMethod();
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .WithExposedHeaders("Content-Disposition");
     });
 });
 
@@ -45,7 +46,7 @@ app.MapGet("/api/logs", async (ILogService logService) =>
     .WithOpenApi();
 
 // Define API route to download log file by ID
-app.MapGet("/api/logs/{logId}/download", async (string logId, ILogService logService) =>
+app.MapGet("/api/logs/{logId}/download", async (string logId, ILogService logService, HttpResponse response) =>
 {
     try
     {
