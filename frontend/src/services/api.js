@@ -10,5 +10,10 @@ const apiClient = axios.create({
 export default {
     getLogs() {
         return apiClient.get('/api/logs')
+    },
+    downloadFile(logId) {
+        return apiClient.get(`/api/logs/${logId}/download`, {
+            responseType: 'blob'
+        })
     }
 }

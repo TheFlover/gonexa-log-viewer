@@ -2,5 +2,6 @@ namespace LogViewerApi.Models;
 
 public class LogSettings
 {
-    public string FilePath { get; set; } = string.Empty;
+    public string JsonFilePath { get; set; } = string.Empty;
+    public string GeneratedFilePath { get; set; } = string.Empty;
 }

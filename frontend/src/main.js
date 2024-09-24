@@ -4,6 +4,8 @@ import PrimeVue from 'primevue/config'
 import Aura from '@primevue/themes/aura';
 
 const app = createApp(App)
+
+// Use PrimeVue
 app.use(PrimeVue, {
     theme: {
         preset: Aura
