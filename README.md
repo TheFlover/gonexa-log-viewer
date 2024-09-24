@@ -33,7 +33,7 @@ Le projet est divisé en deux parties principales :
 
 1. Naviguez dans le dossier backend :
    ```
-   cd backend
+   cd backend\LogViewerApi\
    ```
 
 2. Restaurez les packages NuGet :
@@ -47,7 +47,7 @@ Le projet est divisé en deux parties principales :
 
 1. Lancez le backend :
    ```
-   cd backend
+   cd backend\LogViewerApi\
    dotnet run
    ```
    L'API sera accessible à `http://localhost:5008`.
@@ -69,7 +69,7 @@ Le projet est divisé en deux parties principales :
 
 2. Lancez le backend en mode production :
    ```
-   cd backend
+   cd backend\LogViewerApi\
    dotnet run --configuration Release
    ```
 
