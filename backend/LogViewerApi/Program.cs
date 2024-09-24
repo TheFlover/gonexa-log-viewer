@@ -45,8 +45,8 @@ app.MapGet("/api/logs", async (ILogService logService) =>
     .WithName("GetLogs")
     .WithOpenApi();
 
-// Define API route to download log file by ID
-app.MapGet("/api/logs/{logId}/download", async (string logId, ILogService logService, HttpResponse response) =>
+// Define API route to download generated log file by ID
+app.MapGet("/api/logs/{logId}/download/generatedfile", async (string logId, ILogService logService) =>
 {
     try
     {
@@ -67,6 +67,30 @@ app.MapGet("/api/logs/{logId}/download", async (string logId, ILogService logSer
     }
 })
 .WithName("DownloadGeneratedFile")
+.WithOpenApi();
+
+// Define API route to download model log file by ID
+app.MapGet("/api/logs/{logId}/download/modelfile", async (string logId, ILogService logService) =>
+{
+    try
+    {
+        var (fileStream, contentType, fileName) = await logService.DownloadModelFileAsync(logId);
+        return Results.File(fileStream, contentType, fileName);
+    }
+    catch (KeyNotFoundException)
+    {
+        return Results.NotFound($"Log with ID {logId} not found.");
+    }
+    catch (InvalidOperationException ex)
+    {
+        return Results.BadRequest(ex.Message);
+    }
+    catch (FileNotFoundException)
+    {
+        return Results.NotFound($"Model file for log ID {logId} not found.");
+    }
+})
+.WithName("DownloadModelFile")
 .WithOpenApi();
 
 app.Run();

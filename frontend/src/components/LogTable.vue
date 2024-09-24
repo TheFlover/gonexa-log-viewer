@@ -18,9 +18,12 @@
 				</template>
 			</Column>
 			<Column field="generationDuration" header="Generation Duration" sortable></Column>
-			<Column header="Actions">
+			<Column header="Download Documents">
 				<template #body="slotProps">
-					<Button label="Download" icon="pi pi-download" @click="downloadFile(slotProps.data.id)" />
+					<div class="action-buttons">
+						<Button label="Model" icon="pi pi-download" @click="downloadFile(slotProps.data.id, FileType.Model)" class="mr-2"/>
+						<Button label="Generated" icon="pi pi-download" @click="downloadFile(slotProps.data.id, FileType.Generated)" />
+					</div>
 				</template>
 			</Column>
 		</DataTable>
@@ -34,6 +37,17 @@ import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import Tag from 'primevue/tag';
 import Button from 'primevue/button';
+
+const FileType = {
+  Model: 'MODEL',
+  Generated: 'GENERATED'
+};
+
+const GenerationStatus = {
+  SUCCESS: 'SUCCESS',
+  FAILED: 'FAILED',
+  IN_PROGRESS: 'IN_PROGRESS'
+};
 
 export default {
 	components: {
@@ -56,16 +70,28 @@ export default {
 
 		const getStatusSeverity = (status) => {
 			switch(status) {
-				case 'SUCCESS': return 'success';
-				case 'FAILED': return 'danger';
-				case 'IN_PROGRESS': return 'warning';
+				case GenerationStatus.SUCCESS: return 'success';
+				case GenerationStatus.FAILED: return 'danger';
+				case GenerationStatus.IN_PROGRESS: return 'warning';
 				default: return 'info';
 			}
 		};
 
-		const downloadFile = async (logId) => {
+		const downloadFile = async (logId, fileType) => {
 			try {
-				const response = await apiService.downloadFile(logId);
+				let response;
+
+				switch(fileType) {
+					case FileType.Model:
+						response = await apiService.downloadModelFile(logId);
+						break;
+					case FileType.Generated:
+						response = await apiService.downloadGeneratedFile(logId);
+						break;
+					default:
+						console.error('Invalid file type:', fileType);
+						return;
+				}
 
 				// Extract file name from response headers
 				const fileName = response.headers['content-disposition'].split('filename=')[1].split(';')[0];
@@ -92,8 +118,16 @@ export default {
 		return {
 			logs,
 			getStatusSeverity,
-			downloadFile
+			downloadFile,
+			FileType
 		};
 	}
 }
 </script>
+
+<style scoped>
+.action-buttons {
+	display: flex;
+	gap: 0.5rem;
+}
+</style>
