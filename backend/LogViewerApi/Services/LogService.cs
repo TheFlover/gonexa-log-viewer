@@ -9,12 +9,14 @@ public class LogService : ILogService
 {
     private readonly string _jsonFilePath;
     private readonly string _generatedFilePath;
+    private readonly string _modelFilePath;
 
     // Initialize file paths from settings and environment variables
     public LogService(IOptions<LogSettings> settings, IWebHostEnvironment environment)
     {
         _jsonFilePath = Path.Combine(environment.ContentRootPath, settings.Value.JsonFilePath);
         _generatedFilePath = Path.Combine(environment.ContentRootPath, settings.Value.GeneratedFilePath);
+        _modelFilePath = Path.Combine(environment.ContentRootPath, settings.Value.ModelFilePath);
     }
 
     // Fetch all logs asynchronously by reading and deserializing the JSON file
@@ -48,6 +50,29 @@ public class LogService : ILogService
         var fileStream = new FileStream(_generatedFilePath, FileMode.Open, FileAccess.Read, FileShare.Read);
         
         var newFileName = $"GeneratedDocument_{logId}.pdf";
+        
+        return (fileStream, contentType, newFileName);
+    }
+
+    // Download a model file for a specific log ID
+    public async Task<(Stream FileStream, string ContentType, string FileName)> DownloadModelFileAsync(string logId)
+    {
+        // Get log by ID, throw if not found
+        var logs = await GetAllLogsAsync();
+        var log = logs.FirstOrDefault(log => log.Id == logId)
+            ?? throw new KeyNotFoundException($"Log ID '{logId}' not found.");
+
+        // Throw if the model file does not exist
+        if (!File.Exists(_modelFilePath))
+        {
+            throw new FileNotFoundException($"Model file not found for log ID '{logId}'");
+        }
+
+        // Determine the content type and open the file for reading
+        var contentType = GetContentType(_modelFilePath);
+        var fileStream = new FileStream(_modelFilePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+        
+        var newFileName = $"ModelDocument_{logId}.pdf";
         
         return (fileStream, contentType, newFileName);
     }
