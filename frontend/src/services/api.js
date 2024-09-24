@@ -11,8 +11,13 @@ export default {
     getLogs() {
         return apiClient.get('/api/logs')
     },
-    downloadFile(logId) {
-        return apiClient.get(`/api/logs/${logId}/download`, {
+    downloadGeneratedFile(logId) {
+        return apiClient.get(`/api/logs/${logId}/download/generatedfile`, {
+            responseType: 'blob'
+        })
+    },
+    downloadModelFile(logId) {
+        return apiClient.get(`/api/logs/${logId}/download/modelfile`, {
             responseType: 'blob'
         })
     }
