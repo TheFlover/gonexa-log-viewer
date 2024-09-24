@@ -4,6 +4,7 @@ const webpack = require('webpack')
 module.exports = defineConfig({
   transpileDependencies: true,
   
+  // Configuration of the environment variables
   configureWebpack: {
     plugins: [
       new webpack.DefinePlugin({
@@ -14,10 +15,10 @@ module.exports = defineConfig({
     ]
   },
 
-  // Désactive la génération de source maps en production pour de meilleures performances
+  // Desactivation of source maps generation in production for better performances
   productionSourceMap: process.env.NODE_ENV !== 'production',
 
-  // Configuration du serveur de développement
+  // Configuration of the development server
   devServer: {
     port: 8080,
     proxy: {
