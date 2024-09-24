@@ -85,4 +85,29 @@ public class LogService : ILogService
             ? contentType 
             : "application/octet-stream";
     }
+
+    // Retry generation for a specific log ID
+    public async Task<LogEntry> RetryGenerationAsync(string logId)
+    {
+        // Get log by ID, throw if not found
+        var logs = await GetAllLogsAsync();
+        var log = logs.FirstOrDefault(log => log.Id == logId) 
+            ?? throw new KeyNotFoundException($"Log with ID {logId} not found.");
+
+        // Can only retry failed generations
+        if (log.GenerationStatus != "FAILED")
+        {
+            throw new InvalidOperationException("Can only retry failed generations.");
+        }
+
+        // Simulate generation by updating the log status
+        log = log with
+        {
+            GenerationStatus = "SUCCESS",
+            GenerationEndsAt = DateTime.UtcNow,
+            GenerationStartsAt = DateTime.UtcNow.AddSeconds(-log.GenerationDuration)
+        };
+
+        return log;
+    }
 }

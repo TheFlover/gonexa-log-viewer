@@ -93,4 +93,23 @@ app.MapGet("/api/logs/{logId}/download/modelfile", async (string logId, ILogServ
 .WithName("DownloadModelFile")
 .WithOpenApi();
 
+app.MapPost("/api/logs/{logId}/retry", async (string logId, ILogService logService) =>
+{
+    try
+    {
+        var updatedLog = await logService.RetryGenerationAsync(logId);
+        return Results.Ok(updatedLog);
+    }
+    catch (KeyNotFoundException)
+    {
+        return Results.NotFound($"Log with ID {logId} not found.");
+    }
+    catch (Exception ex)
+    {
+        return Results.BadRequest(ex.Message);
+    }
+})
+.WithName("RetryGeneration")
+.WithOpenApi();
+
 app.Run();
