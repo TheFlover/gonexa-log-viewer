@@ -5,23 +5,22 @@ using Microsoft.AspNetCore.Cors;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+// Add services for API documentation and CORS configuration
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Configure CORS
+// Configure CORS to allow requests from http://localhost:8080 origin
 builder.Services.AddCors(options =>
 {
-    options.AddDefaultPolicy(
-        policy =>
-        {
-            policy.WithOrigins("http://localhost:8080") // Adjust this if your Vue app runs on a different port
-                  .AllowAnyHeader()
-                  .AllowAnyMethod();
-        });
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.WithOrigins("http://localhost:8080")
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
 });
 
+// Bind LogSettings configuration and register logging service
 builder.Services.Configure<LogSettings>(
     builder.Configuration.GetSection(nameof(LogSettings)));
 
@@ -29,7 +28,7 @@ builder.Services.AddSingleton<ILogService, LogService>();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Enable Swagger in development environment
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -37,13 +36,36 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
-// Use CORS globally
 app.UseCors();
 
+// Define API route to fetch all logs
 app.MapGet("/api/logs", async (ILogService logService) =>
     Results.Ok(await logService.GetAllLogsAsync()))
     .WithName("GetLogs")
     .WithOpenApi();
+
+// Define API route to download log file by ID
+app.MapGet("/api/logs/{logId}/download", async (string logId, ILogService logService) =>
+{
+    try
+    {
+        var (fileStream, contentType, fileName) = await logService.DownloadGeneratedFileAsync(logId);
+        return Results.File(fileStream, contentType, fileName);
+    }
+    catch (KeyNotFoundException)
+    {
+        return Results.NotFound($"Log with ID {logId} not found.");
+    }
+    catch (InvalidOperationException ex)
+    {
+        return Results.BadRequest(ex.Message);
+    }
+    catch (FileNotFoundException)
+    {
+        return Results.NotFound($"Generated file for log ID {logId} not found.");
+    }
+})
+.WithName("DownloadGeneratedFile")
+.WithOpenApi();
 
 app.Run();
