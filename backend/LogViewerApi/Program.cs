@@ -17,7 +17,7 @@ builder.Services.AddCors(options =>
         policy.WithOrigins("http://localhost:8080")
             .AllowAnyHeader()
             .AllowAnyMethod()
-            .WithExposedHeaders("Content-Disposition");
+            .WithExposedHeaders("Content-Disposition", "Content-Type");
     });
 });
 
@@ -41,9 +41,18 @@ app.UseCors();
 
 // Define API route to fetch all logs
 app.MapGet("/api/logs", async (ILogService logService) =>
-    Results.Ok(await logService.GetAllLogsAsync()))
-    .WithName("GetLogs")
-    .WithOpenApi();
+{
+    try
+    {
+        return Results.Ok(await logService.GetAllLogsAsync());
+    }
+    catch (Exception)
+    {
+        return Results.Problem("An unexpected error occurred.");
+    }
+})
+.WithName("GetLogs")
+.WithOpenApi();
 
 // Define API route to download generated log file by ID
 app.MapGet("/api/logs/{logId}/download/generatedfile", async (string logId, ILogService logService) =>
@@ -53,17 +62,17 @@ app.MapGet("/api/logs/{logId}/download/generatedfile", async (string logId, ILog
         var (fileStream, contentType, fileName) = await logService.DownloadGeneratedFileAsync(logId);
         return Results.File(fileStream, contentType, fileName);
     }
-    catch (KeyNotFoundException)
+    catch (KeyNotFoundException ex)
     {
-        return Results.NotFound($"Log with ID {logId} not found.");
+        return Results.NotFound(ex.Message);
     }
-    catch (InvalidOperationException ex)
+    catch (FileNotFoundException ex)
     {
-        return Results.BadRequest(ex.Message);
+        return Results.NotFound(ex.Message);
     }
-    catch (FileNotFoundException)
+    catch (Exception)
     {
-        return Results.NotFound($"Generated file for log ID {logId} not found.");
+        return Results.Problem("An unexpected error occurred.");
     }
 })
 .WithName("DownloadGeneratedFile")
@@ -77,17 +86,17 @@ app.MapGet("/api/logs/{logId}/download/modelfile", async (string logId, ILogServ
         var (fileStream, contentType, fileName) = await logService.DownloadModelFileAsync(logId);
         return Results.File(fileStream, contentType, fileName);
     }
-    catch (KeyNotFoundException)
+    catch (KeyNotFoundException ex)
     {
-        return Results.NotFound($"Log with ID {logId} not found.");
+        return Results.NotFound(ex.Message);
     }
-    catch (InvalidOperationException ex)
+    catch (FileNotFoundException ex)
     {
-        return Results.BadRequest(ex.Message);
+        return Results.NotFound(ex.Message);
     }
-    catch (FileNotFoundException)
+    catch (Exception)
     {
-        return Results.NotFound($"Model file for log ID {logId} not found.");
+        return Results.Problem("An unexpected error occurred.");
     }
 })
 .WithName("DownloadModelFile")
@@ -100,13 +109,17 @@ app.MapPost("/api/logs/{logId}/retry", async (string logId, ILogService logServi
         var updatedLog = await logService.RetryGenerationAsync(logId);
         return Results.Ok(updatedLog);
     }
-    catch (KeyNotFoundException)
+    catch (KeyNotFoundException ex)
     {
-        return Results.NotFound($"Log with ID {logId} not found.");
+        return Results.NotFound(ex.Message);
     }
-    catch (Exception ex)
+    catch (InvalidOperationException ex)
     {
         return Results.BadRequest(ex.Message);
+    }
+    catch (Exception)
+    {
+        return Results.Problem("An unexpected error occurred.");
     }
 })
 .WithName("RetryGeneration")

@@ -37,6 +37,8 @@
 
 <script>
 import { ref, onMounted } from 'vue';
+import { useToast } from 'primevue/usetoast';
+import { createErrorHandler } from '@/services/errorHandler';
 import apiService from '@/services/api';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
@@ -62,6 +64,8 @@ export default {
 		Button
 	},
 	setup() {
+		const toast = useToast();
+		const { handleError } = createErrorHandler(toast);
 		const logs = ref([]);
 
 		const getLogs = async () => {
@@ -69,7 +73,7 @@ export default {
 				const response = await apiService.getLogs();
 				logs.value = response.data;
 			} catch (error) {
-				console.error('Error fetching logs:', error);
+				handleError(error);
 			}
 		};
 
@@ -94,7 +98,7 @@ export default {
 						response = await apiService.downloadGeneratedFile(logId);
 						break;
 					default:
-						console.error('Invalid file type:', fileType);
+						handleError('Invalid file type: ' + fileType);
 						return;
 				}
 
@@ -113,8 +117,15 @@ export default {
 				link.click();
 				link.remove();
 				window.URL.revokeObjectURL(url);
+
+				toast.add({
+					severity: 'success',
+					summary: 'Downloaded',
+					detail: 'File downloaded successfully',
+					life: 5000
+				})
 			} catch (error) {
-				console.error('Error downloading file:', error);
+				handleError(error);
 			}
 		};
 
@@ -123,18 +134,20 @@ export default {
 			try {
 				const response = await apiService.retryGeneration(logId);
 				
-				if (response.status !== 200) {
-					console.error('Error retrying generation:', response.data);
-					return;
-				}
-
 				// Update the generation status of the log
 				const logIndex = logs.value.findIndex(log => log.id === logId);
 				if (logIndex !== -1) {
 					logs.value[logIndex] = response.data;
 				}
+
+				toast.add({
+					severity: 'success',
+					summary: 'Retry Generation',
+					detail: 'Generation has been retry successfully',
+					life: 5000
+				});
 			} catch (error) {
-				console.error('Error retrying generation:', error);
+				handleError(error);
 			}
 		};
 
@@ -144,8 +157,8 @@ export default {
 			logs,
 			getStatusSeverity,
 			downloadFile,
-			FileType,
 			retryGeneration,
+			FileType,
 			GenerationStatus  
 		};
 	}
